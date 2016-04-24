@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Complex Polylines</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 90%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <input type="text" id="address" placeholder="Enter an address"/>
+    <input type="button" onclick="codeAddress()" value="Center Map">
+    <div id="display"></div>
+    <button type="button" onclick="ajaxCall()">Update Content</button>
+    <script>
+
+      // simple AJAX test
+
+      function ajaxCall() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+            document.getElementById("display").innerHtml = xhttp.responseText;
+          }
+        };
+        xhttp.open("GET", "geolocations.txt", true);
+        xhttp.send();
+      }
+
+      // This creates an interactive map which constructs a polyline based on
+      // user clicks. Note that the polyline only appears once its path property
+      // contains two LatLng coordinates.
+
+      var geocoder;
+      var poly;
+      var map;
+      var styles = [{"featureType":"landscape","stylers":[{"saturation":-100},{"lightness":65},{"visibility":"on"}]},{"featureType":"poi","stylers":[{"saturation":-100},{"lightness":51},{"visibility":"simplified"}]},{"featureType":"road.highway","stylers":[{"saturation":-100},{"visibility":"simplified"}]},{"featureType":"road.arterial","stylers":[{"saturation":-100},{"lightness":30},{"visibility":"on"}]},{"featureType":"road.local","stylers":[{"saturation":-100},{"lightness":40},{"visibility":"on"}]},{"featureType":"transit","stylers":[{"saturation":-100},{"visibility":"simplified"}]},{"featureType":"administrative.province","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"labels","stylers":[{"visibility":"on"},{"lightness":-25},{"saturation":-100}]},{"featureType":"water","elementType":"geometry","stylers":[{"hue":"#ffff00"},{"lightness":-25},{"saturation":-97}]}];
+      var latitudes  = new Array();
+      var longitudes = new Array();
+
+      function initMap() {
+        geocoder = new google.maps.Geocoder();
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 10,
+          center: {lat: 39.952584, lng: -75.165222}  // Center the map on Philadelphia, USA.
+        });
+
+      function codeAddress() {
+        var address = document.getElementById("address").value;
+          geocoder.geocode( { 'address': address}, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+              map.setCenter(results[0].geometry.location);
+            } else {
+            alert("Geocode was not successful for the following reason: " + status);
+            }
+        });
+      }
+
+        poly = new google.maps.Polyline({
+          strokeColor: '#27ae60',
+          strokeOpacity: 1.0,
+          strokeWeight: 5
+        });
+        poly.setMap(map);
+
+        // Add a listener for the click event
+        map.addListener('click', addLatLng);
+
+        map.setOptions({styles: styles});
+      }
+
+      // Handles click events on a map, and adds a new point to the Polyline.
+      function addLatLng(event) {
+        var path = poly.getPath();
+
+        // Because path is an MVCArray, we can simply append a new coordinate
+        // and it will automatically appear.
+        path.push(event.latLng);
+
+        // Push Each Point's Latitude and Longitude to its corresponding array
+        latitudes.push(event.latLng.lat());
+        longitudes.push(event.latLng.lng());
+
+        console.log(latitudes);
+        console.log(longitudes);
+
+
+        // Add a new marker at the new plotted point on the polyline.
+        var marker = new google.maps.Marker({
+          position: event.latLng,
+          title: '#' + path.getLength(),
+          map: map
+        });
+
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeWXUZJRq8dsxWzBUQxTBT3SxPeNMzmj4&callback=initMap">
+    </script>
+  </body>
+</html>
