@@ -25,16 +25,7 @@
 
       // simple AJAX test
 
-      function ajaxCall() {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-          if (xhttp.readyState == 4 && xhttp.status == 200) {
-            document.getElementById("display").innerHtml = xhttp.responseText;
-          }
-        };
-        xhttp.open("GET", "geolocations.txt", true);
-        xhttp.send();
-      }
+      
 
       // This creates an interactive map which constructs a polyline based on
       // user clicks. Note that the polyline only appears once its path property
@@ -73,38 +64,72 @@
         poly.setMap(map);
 
         // Add a listener for the click event
-        map.addListener('click', addLatLng);
+       // map.addListener('click', addLatLng);
 
         map.setOptions({styles: styles});
       }
 
       // Handles click events on a map, and adds a new point to the Polyline.
-      function addLatLng(event) {
-        var path = poly.getPath();
+      // function addLatLng(event) {
+      //   var path = poly.getPath();
 
-        // Because path is an MVCArray, we can simply append a new coordinate
-        // and it will automatically appear.
-        path.push(event.latLng);
+      //   // Because path is an MVCArray, we can simply append a new coordinate
+      //   // and it will automatically appear.
+      //   path.push(event.latLng);
 
-        // Push Each Point's Latitude and Longitude to its corresponding array
-        latitudes.push(event.latLng.lat());
-        longitudes.push(event.latLng.lng());
+      //   // Push Each Point's Latitude and Longitude to its corresponding array
+      //   latitudes.push(event.latLng.lat());
+      //   longitudes.push(event.latLng.lng());
 
-        console.log(latitudes);
-        console.log(longitudes);
+      //   console.log(latitudes);
+      //   console.log(longitudes);
 
 
-        // Add a new marker at the new plotted point on the polyline.
-        var marker = new google.maps.Marker({
-          position: event.latLng,
-          title: '#' + path.getLength(),
-          map: map
-        });
+      //   // Add a new marker at the new plotted point on the polyline.
+      //   var marker = new google.maps.Marker({
+      //     position: event.latLng,
+      //     title: '#' + path.getLength(),
+      //     map: map
+      //   });
 
-      }
+      // }
     </script>
+    
+    <script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeWXUZJRq8dsxWzBUQxTBT3SxPeNMzmj4&callback=initMap">
+    </script>
+    <script>
+      jQuery(document).ready(function($){
+        $.ajax({
+        type: "GET",
+        url: "http://www.stolen-sheep.com/gpx/route.gpx",
+        dataType: "xml",
+
+        success: function(xml) {
+        var points = [];
+        var bounds = new google.maps.LatLngBounds ();
+        $(xml).find("trkpt").each(function() {
+          var lat = $(this).attr("lat");
+          var lon = $(this).attr("lon");
+          var p = new google.maps.LatLng(lat, lon);
+          points.push(p);
+          bounds.extend(p);
+        });
+        var poly = new google.maps.Polyline({
+          path: points,
+          strokeColor: "#FF00AA",
+          strokeOpacity: .7,
+          strokeWeight: 4
+        });
+  
+  poly.setMap(map);
+  
+  // fit bounds to track
+  map.fitBounds(bounds);
+      }
+    });
+    });    
     </script>
   </body>
 </html>
